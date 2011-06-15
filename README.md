@@ -5,3 +5,7 @@ XCode 4 `HOME` (`ctrl-left`) keys behave differently then in Visual Studio. It m
 ### Installation
 
 Download and compile the project or download the binary and unzip it to `~Library/Application Support/Developer/Shared/Xcode/Plug-ins/`
+
+### Credits
+
+Thanks to Dave Keck for XCode 4 Fixins project (https://github.com/davekeck/Xcode-4-Fixins)
