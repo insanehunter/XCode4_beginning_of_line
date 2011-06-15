@@ -1,0 +1,25 @@
+# --- Other version control systems
+.svn/
+.hg/
+
+# --- Idiotic files
+.DS_Store
+*.orig
+*.LOCAL.*.*
+*.BACKUP.*.*
+*.BASE.*.*
+*.REMOTE.*.*
+*.pyc
+*.swp
+
+# --- XCode3
+/build/
+*.mode1
+*.mode1v3
+*.mode2v3
+*.perspective
+*.perspectivev3
+*.pbxuser
+
+# --- XCode4
+xcuserdata/
