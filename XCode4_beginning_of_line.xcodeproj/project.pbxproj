@@ -7,17 +7,17 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		435E248613A8E5A40052479A /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 435E248213A8E5A40052479A /* InfoPlist.strings */; };
 		435E248813A8E5A40052479A /* XCode4_beginning_of_line.m in Sources */ = {isa = PBXBuildFile; fileRef = 435E248513A8E5A40052479A /* XCode4_beginning_of_line.m */; };
 		435E248B13A8E5DA0052479A /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 435E248A13A8E5DA0052479A /* Cocoa.framework */; };
+		437DCBC514D41E700039CB49 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 437DCBC314D41E700039CB49 /* InfoPlist.strings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		435E247213A8E4A20052479A /* XCode4_beginning_of_line.xcplugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = XCode4_beginning_of_line.xcplugin; sourceTree = BUILT_PRODUCTS_DIR; };
-		435E248313A8E5A40052479A /* English */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = English; path = InfoPlist.strings; sourceTree = "<group>"; };
 		435E248413A8E5A40052479A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		435E248513A8E5A40052479A /* XCode4_beginning_of_line.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XCode4_beginning_of_line.m; sourceTree = "<group>"; };
 		435E248A13A8E5DA0052479A /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = SDKs/MacOSX10.6.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
+		437DCBC414D41E700039CB49 /* English */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -49,18 +49,10 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		435E248113A8E5A40052479A /* English.lproj */ = {
-			isa = PBXGroup;
-			children = (
-				435E248213A8E5A40052479A /* InfoPlist.strings */,
-			);
-			path = English.lproj;
-			sourceTree = "<group>";
-		};
 		435E248913A8E5B70052479A /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				435E248113A8E5A40052479A /* English.lproj */,
+				437DCBC314D41E700039CB49 /* InfoPlist.strings */,
 				435E248413A8E5A40052479A /* Info.plist */,
 				435E248513A8E5A40052479A /* XCode4_beginning_of_line.m */,
 			);
@@ -92,6 +84,9 @@
 /* Begin PBXProject section */
 		435E246713A8E4510052479A /* Project object */ = {
 			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0420;
+			};
 			buildConfigurationList = 435E246A13A8E4510052479A /* Build configuration list for PBXProject "XCode4_beginning_of_line" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
@@ -115,7 +110,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				435E248613A8E5A40052479A /* InfoPlist.strings in Resources */,
+				437DCBC514D41E700039CB49 /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -133,10 +128,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
-		435E248213A8E5A40052479A /* InfoPlist.strings */ = {
+		437DCBC314D41E700039CB49 /* InfoPlist.strings */ = {
 			isa = PBXVariantGroup;
 			children = (
-				435E248313A8E5A40052479A /* English */,
+				437DCBC414D41E700039CB49 /* English */,
 			);
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
@@ -152,7 +147,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				SDKROOT = macosx10.6;
+				SDKROOT = macosx;
 			};
 			name = Debug;
 		};
@@ -163,7 +158,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				SDKROOT = macosx10.6;
+				SDKROOT = macosx;
 			};
 			name = Release;
 		};
@@ -178,7 +173,6 @@
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "/Library/Application Support/Developer/Shared/Xcode/Plug-ins";
 				LD_RUNPATH_SEARCH_PATHS = /Developer;
-				PREBINDING = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRIP_INSTALLED_PRODUCT = YES;
 				WRAPPER_EXTENSION = xcplugin;
@@ -197,7 +191,6 @@
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "/Library/Application Support/Developer/Shared/Xcode/Plug-ins";
 				LD_RUNPATH_SEARCH_PATHS = /Developer;
-				PREBINDING = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRIP_INSTALLED_PRODUCT = YES;
 				WRAPPER_EXTENSION = xcplugin;
@@ -223,6 +216,7 @@
 				435E248013A8E4A20052479A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
