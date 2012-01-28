@@ -1,10 +1,10 @@
 ### Description
 
-XCode 4 `HOME` (`⌘←`) key behaves differently then in Visual Studio. It makes jump to the beginning of line, not to the beginning of code. This plugin fixes this odd behavior by making jump-to-beginning-of-line more intelligent. If caret stands on code or at the beginning of line, it jumps to the first non-whitespace character of the line. In the other case it jumps just to the beginning of line.
+Unfortunately the `HOME` (`fn←` and `⌘←` on a Mac keyboard) key in XCode acts in a dumb way - it jumps to the first, usually whitespace, line character, so you cannot instantly jump to the first code character. Visual Studio implements this feature in a right way, jumping to the leftmost non-whitespace character on a first key press and to the beginning of line on a second, cycling between these positions on futher strokes. This plugin implements this smart behavior in XCode 4.
 
 ### Installation
 
-Download and compile the project or download the binary and unzip it to `~/Library/Application Support/Developer/Shared/Xcode/Plug-ins/`
+Download and compile the project (the plugin will be installed during build process) or download the binary and unzip it to `~/Library/Application Support/Developer/Shared/Xcode/Plug-ins/`
 
 ### Credits
 
