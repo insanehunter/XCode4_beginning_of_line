@@ -11,9 +11,10 @@ static void doCommandBySelector( id self_, SEL _cmd, SEL selector )
 {
 	do {
 		bool selectionModified = selector == @selector(moveToBeginningOfLineAndModifySelection:) ||
-			selector == @selector(moveToLeftEndOfLineAndModifySelection:);
+        selector == @selector(moveToLeftEndOfLineAndModifySelection:);
 		
-		if (selector == @selector(moveToBeginningOfLine:) ||
+		if (selector == @selector(deleteToBeginningOfLine:) ||
+            selector == @selector(moveToBeginningOfLine:) ||
             selector == @selector(moveToLeftEndOfLine:) || selectionModified)
 		{
 			NSTextView *self = (NSTextView *)self_;
@@ -47,6 +48,13 @@ static void doCommandBySelector( id self_, SEL _cmd, SEL selector )
 			
 			[self setSelectedRange:range];
 			[self scrollRangeToVisible:range];
+            
+            // We are now at the beginning of line,
+            // call -deleteToEndOfLine to keep the same selection position.
+            if (selector == @selector(deleteToBeginningOfLine:)) {
+                [self deleteToEndOfLine:self];
+            }
+            
 			return;
 		}
 	} while (0);
@@ -74,6 +82,6 @@ static void doCommandBySelector( id self_, SEL _cmd, SEL selector )
     return;
     
 failed:
-    NSLog(@"%@ failed. :(", NSStringFromClass([self class]));
+    NSLog(@"%@ failed :(", NSStringFromClass([self class]));
 }
 @end
