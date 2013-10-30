@@ -12,4 +12,11 @@ Download and compile the project (the plugin will be installed during build proc
 
 ### Credits
 
-Thanks to Dave Keck for Xcode 4 Fixins project (https://github.com/davekeck/Xcode-4-Fixins)
+Contributors:
+* [Jim Sagevid](https://github.com/jims)
+* [supulsinac](https://github.com/supulsinac)
+* [Ben Kreeger](https://github.com/kreeger)
+* [gottfired](https://github.com/gottfired)
+* [Thongchai Kolyutsakul](https://github.com/hlung)
+
+Thanks to [Dave Keck](https://github.com/davekeck) for [Xcode 4 Fixins project](https://github.com/davekeck/Xcode-4-Fixins)
