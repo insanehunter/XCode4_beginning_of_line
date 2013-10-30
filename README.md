@@ -1,4 +1,6 @@
-## Warning! This plugin was renamed to `Xcode_beginning_of_line`.
+### This plugin was renamed to `Xcode_beginning_of_line`.
+
+The repository name won't change, but with help of [Thongchai Kolyutsakul](https://github.com/hlung) the plugin itself was renamed to `Xcode_beginning_of_line`. I added a build step to automatically remove the previous version.
 
 ### Description
 
