@@ -1,6 +1,6 @@
 ### Description
 
-Unfortunately the `HOME` (`fn←` and `⌘←` on a Mac keyboard) key in XCode acts in a dumb way - it jumps to the first, usually whitespace, line character, so you cannot instantly jump to the first code character. Visual Studio implements this feature in a right way, jumping to the leftmost non-whitespace character on a first key press and to the beginning of line on a second, cycling between these positions on futher strokes. This plugin implements this smart behavior in XCode 4.
+Unfortunately the `HOME` (`fn←` and `⌘←` on a Mac keyboard) key in XCode acts in a dumb way - it jumps to the first, usually whitespace, line character, so you cannot instantly jump to the first code character. Visual Studio implements this feature in a right way, jumping to the leftmost non-whitespace character on a first key press and to the beginning of line on a second, cycling between these positions on futher strokes. This plugin implements this smart behavior in Xcode.
 
 ### Installation
 

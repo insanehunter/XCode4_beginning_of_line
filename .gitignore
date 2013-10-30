@@ -23,3 +23,6 @@
 
 # --- XCode4
 xcuserdata/
+
+# --- XCode5
+*.xccheckout

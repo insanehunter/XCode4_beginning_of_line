@@ -8,16 +8,16 @@
 
 /* Begin PBXBuildFile section */
 		435E248813A8E5A40052479A /* XCode4_beginning_of_line.m in Sources */ = {isa = PBXBuildFile; fileRef = 435E248513A8E5A40052479A /* XCode4_beginning_of_line.m */; };
-		435E248B13A8E5DA0052479A /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 435E248A13A8E5DA0052479A /* Cocoa.framework */; };
 		437DCBC514D41E700039CB49 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 437DCBC314D41E700039CB49 /* InfoPlist.strings */; };
+		E099AE97181FCB3B00F0B4A1 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E099AE96181FCB3B00F0B4A1 /* Cocoa.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		435E247213A8E4A20052479A /* XCode4_beginning_of_line.xcplugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = XCode4_beginning_of_line.xcplugin; sourceTree = BUILT_PRODUCTS_DIR; };
 		435E248413A8E5A40052479A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		435E248513A8E5A40052479A /* XCode4_beginning_of_line.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XCode4_beginning_of_line.m; sourceTree = "<group>"; };
-		435E248A13A8E5DA0052479A /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = SDKs/MacOSX10.6.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
 		437DCBC414D41E700039CB49 /* English */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		E099AE96181FCB3B00F0B4A1 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -25,7 +25,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				435E248B13A8E5DA0052479A /* Cocoa.framework in Frameworks */,
+				E099AE97181FCB3B00F0B4A1 /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -35,7 +35,7 @@
 		435E246513A8E4510052479A = {
 			isa = PBXGroup;
 			children = (
-				435E248A13A8E5DA0052479A /* Cocoa.framework */,
+				E099AE96181FCB3B00F0B4A1 /* Cocoa.framework */,
 				435E248913A8E5B70052479A /* Sources */,
 				435E247313A8E4A20052479A /* Products */,
 			);
