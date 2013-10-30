@@ -21,8 +21,8 @@
 *.perspectivev3
 *.pbxuser
 
-# --- XCode4
+# --- Xcode4
 xcuserdata/
 
-# --- XCode5
+# --- Xcode5
 *.xccheckout

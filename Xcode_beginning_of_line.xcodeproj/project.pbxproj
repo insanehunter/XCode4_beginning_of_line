@@ -13,7 +13,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		435E247213A8E4A20052479A /* Xcode_beginning_of_line.temp_caseinsensitive_rename.xcplugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Xcode_beginning_of_line.temp_caseinsensitive_rename.xcplugin; sourceTree = BUILT_PRODUCTS_DIR; };
+		435E247213A8E4A20052479A /* Xcode_beginning_of_line.xcplugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Xcode_beginning_of_line.xcplugin; sourceTree = BUILT_PRODUCTS_DIR; };
 		435E248413A8E5A40052479A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		435E248513A8E5A40052479A /* Xcode_beginning_of_line.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Xcode_beginning_of_line.m; sourceTree = "<group>"; };
 		437DCBC414D41E700039CB49 /* English */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -44,7 +44,7 @@
 		435E247313A8E4A20052479A /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				435E247213A8E4A20052479A /* Xcode_beginning_of_line.temp_caseinsensitive_rename.xcplugin */,
+				435E247213A8E4A20052479A /* Xcode_beginning_of_line.xcplugin */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -62,21 +62,22 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		435E247113A8E4A20052479A /* Xcode_beginning_of_line.temp_caseinsensitive_rename */ = {
+		435E247113A8E4A20052479A /* Xcode_beginning_of_line */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 435E247E13A8E4A20052479A /* Build configuration list for PBXNativeTarget "Xcode_beginning_of_line.temp_caseinsensitive_rename" */;
+			buildConfigurationList = 435E247E13A8E4A20052479A /* Build configuration list for PBXNativeTarget "Xcode_beginning_of_line" */;
 			buildPhases = (
 				435E246E13A8E4A20052479A /* Sources */,
 				435E246F13A8E4A20052479A /* Frameworks */,
 				435E247013A8E4A20052479A /* Resources */,
+				43F990CE1820EB3B00820EC3 /* ShellScript */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
-			name = Xcode_beginning_of_line.temp_caseinsensitive_rename;
-			productName = XCode4_beginning_of_line;
-			productReference = 435E247213A8E4A20052479A /* Xcode_beginning_of_line.temp_caseinsensitive_rename.xcplugin */;
+			name = Xcode_beginning_of_line;
+			productName = Xcode_beginning_of_line;
+			productReference = 435E247213A8E4A20052479A /* Xcode_beginning_of_line.xcplugin */;
 			productType = "com.apple.product-type.bundle";
 		};
 /* End PBXNativeTarget section */
@@ -100,7 +101,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				435E247113A8E4A20052479A /* Xcode_beginning_of_line.temp_caseinsensitive_rename */,
+				435E247113A8E4A20052479A /* Xcode_beginning_of_line */,
 			);
 		};
 /* End PBXProject section */
@@ -115,6 +116,22 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		43F990CE1820EB3B00820EC3 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 8;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+			shellPath = /bin/sh;
+			shellScript = "PREVIOUS_VERSION=\"$INSTALL_DIR/XCode4_beginning_of_line.xcplugin\"\nif [ -e \"$PREVIOUS_VERSION\" ]; then\n    rm -r \"$PREVIOUS_VERSION\"\n    echo \"A previous version of this plugin was removed.\"\nfi";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		435E246E13A8E4A20052479A /* Sources */ = {
@@ -174,7 +191,7 @@
 				INSTALL_PATH = "/Library/Application Support/Developer/Shared/Xcode/Plug-ins";
 				LD_RUNPATH_SEARCH_PATHS = /Developer;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
-				PRODUCT_NAME = Xcode_beginning_of_line.temp_caseinsensitive_rename;
+				PRODUCT_NAME = Xcode_beginning_of_line;
 				STRIP_INSTALLED_PRODUCT = YES;
 				WRAPPER_EXTENSION = xcplugin;
 			};
@@ -194,7 +211,7 @@
 				INSTALL_PATH = "/Library/Application Support/Developer/Shared/Xcode/Plug-ins";
 				LD_RUNPATH_SEARCH_PATHS = /Developer;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
-				PRODUCT_NAME = Xcode_beginning_of_line.temp_caseinsensitive_rename;
+				PRODUCT_NAME = Xcode_beginning_of_line;
 				STRIP_INSTALLED_PRODUCT = YES;
 				WRAPPER_EXTENSION = xcplugin;
 			};
@@ -212,7 +229,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		435E247E13A8E4A20052479A /* Build configuration list for PBXNativeTarget "Xcode_beginning_of_line.temp_caseinsensitive_rename" */ = {
+		435E247E13A8E4A20052479A /* Build configuration list for PBXNativeTarget "Xcode_beginning_of_line" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				435E247F13A8E4A20052479A /* Debug */,
