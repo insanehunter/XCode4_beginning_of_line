@@ -46,13 +46,27 @@ static void doCommandBySelector( id self_, SEL _cmd, SEL selector )
             
             NSRange range = NSMakeRange(start, end - start);
             
-            [self setSelectedRange:range];
-            [self scrollRangeToVisible:range];
-            
-            // We are now at the beginning of line,
-            // call -deleteToEndOfLine to keep the same selection position.
             if (selector == @selector(deleteToBeginningOfLine:)) {
-                [self deleteToEndOfLine:self];
+                // handle deleteToBeginningOfLine: method
+                NSRange deleteRange;
+                if (caretLocation == codeStartRange.location) {
+                    // we are already at the beginnig of code, delete all the way to start of line
+                    deleteRange = NSMakeRange(lineRange.location, codeStartRange.location);
+                }
+                else {
+                    // delete from caret to code start
+                    deleteRange = NSMakeRange(lineRange.location+codeStartRange.location, caretLocation-codeStartRange.location);
+                }
+                
+                [self setSelectedRange:deleteRange];
+                // We cannot undo if we use -replaceCharactersInRange:withString:,
+                // we need to use -insertText: to delete the text instead.
+                [self insertText:@""];
+            }
+            else {
+                // handle other methods
+                [self setSelectedRange:range];
+                [self scrollRangeToVisible:range];
             }
             
             return;
