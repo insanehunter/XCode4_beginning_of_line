@@ -15,6 +15,7 @@ static void doCommandBySelector( id self_, SEL _cmd, SEL selector )
         
         if (selector == @selector(deleteToBeginningOfLine:) ||
             selector == @selector(moveToBeginningOfLine:) ||
+            selector == @selector(moveToBeginningOfParagraph:) ||
             selector == @selector(moveToLeftEndOfLine:) || selectionModified)
         {
             NSTextView *self = (NSTextView *)self_;
