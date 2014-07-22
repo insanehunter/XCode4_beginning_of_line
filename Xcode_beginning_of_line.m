@@ -81,9 +81,6 @@ static void doCommandBySelector( id self_, SEL _cmd, SEL selector )
 {
     Class class = nil;
     Method originalMethod = nil;
-    
-    NSLog(@"%@ initializing...", NSStringFromClass([self class]));
-    
     if (!(class = NSClassFromString(@"DVTSourceTextView")))
         goto failed;
     
@@ -92,11 +89,9 @@ static void doCommandBySelector( id self_, SEL _cmd, SEL selector )
     
     if (!(original_doCommandBySelector = method_setImplementation(originalMethod, (IMP)&doCommandBySelector)))
         goto failed;
-    
-    NSLog(@"%@ complete!", NSStringFromClass([self class]));
     return;
     
 failed:
-    NSLog(@"%@ failed :(", NSStringFromClass([self class]));
+    NSLog(@"%@ failed to launch :(", NSStringFromClass([self class]));
 }
 @end
