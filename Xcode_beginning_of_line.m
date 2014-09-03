@@ -7,6 +7,74 @@ static IMP original_doCommandBySelector = nil;
 @end
 
 @implementation Xcode_beginning_of_line
+
+static NSRange leftExtendRange(NSString * text, NSRange range, NSCharacterSet * chr) {
+    NSRange backwardTo = [text rangeOfCharacterFromSet:chr options:NSBackwardsSearch range:NSMakeRange(0, range.location - 1)];
+    if (backwardTo.location == NSNotFound) return range;
+    return NSMakeRange(backwardTo.location + 1, range.location + range.length - backwardTo.location - 1);
+}
+
+static NSRange rightExtendRange(NSString * text, NSRange range, NSCharacterSet * chr) {
+    unsigned long end = range.location + range.length;
+    NSRange forwardTo = [text rangeOfCharacterFromSet:chr options:0 range:NSMakeRange(end + 1, text.length - end - 1)];
+    if (forwardTo.location == NSNotFound) return range;
+    return NSMakeRange(range.location, forwardTo.location - range.location);
+}
+
+static NSRange extendRange(NSString * text, NSRange range) {
+    unsigned long end = range.location + range.length;
+    
+    unichar begChar = [text characterAtIndex:range.location - 1];
+    unichar endChar = [text characterAtIndex:range.location + range.length];
+    
+    if (begChar == '"' && endChar != '"') {
+        return rightExtendRange(text, range, [NSCharacterSet characterSetWithCharactersInString:@"\""]);
+    }
+    
+    if (endChar == '"' && begChar != '"') {
+        return leftExtendRange(text, range, [NSCharacterSet characterSetWithCharactersInString:@"\""]);
+    }
+    
+    if (begChar == '(' && endChar != ')') {
+        return rightExtendRange(text, range, [NSCharacterSet characterSetWithCharactersInString:@")"]);
+    }
+    
+    if (endChar == ')' && begChar != '(') {
+        return leftExtendRange(text, range, [NSCharacterSet characterSetWithCharactersInString:@"("]);
+    }
+    
+    if (begChar == '[' && endChar != ']') {
+        return rightExtendRange(text, range, [NSCharacterSet characterSetWithCharactersInString:@"]"]);
+    }
+    
+    if (endChar == ']' && begChar != '[') {
+        return leftExtendRange(text, range, [NSCharacterSet characterSetWithCharactersInString:@"["]);
+    }
+    
+    if (begChar == '.' && endChar != '.') {
+        return leftExtendRange(text, range, [[NSCharacterSet alphanumericCharacterSet] invertedSet]);
+    }
+    
+    if (endChar == '.' && begChar != '.') {
+        return rightExtendRange(text, range, [[NSCharacterSet alphanumericCharacterSet] invertedSet]);
+    }
+    
+    NSRange backwardTo = [text rangeOfCharacterFromSet:[[NSCharacterSet alphanumericCharacterSet] invertedSet] options:NSBackwardsSearch range:NSMakeRange(0, range.location - 1)];
+    if (backwardTo.location == NSNotFound) return range;
+    NSRange forwardTo = [text rangeOfCharacterFromSet:[[NSCharacterSet alphanumericCharacterSet] invertedSet] options:0 range:NSMakeRange(end + 1, text.length - end - 1)];
+    if (forwardTo.location == NSNotFound) return range;
+    return NSMakeRange(backwardTo.location + 1, forwardTo.location - backwardTo.location - 1);
+}
+
+static NSRange shrinkRange(NSString * text, NSRange range) {
+    NSRange backwardTo = [text rangeOfCharacterFromSet:[[NSCharacterSet alphanumericCharacterSet] invertedSet] options:0 range:range];
+    if (backwardTo.location == NSNotFound) return range;
+    NSRange forwardTo = [text rangeOfCharacterFromSet:[[NSCharacterSet alphanumericCharacterSet] invertedSet] options:NSBackwardsSearch range:range];
+    if (forwardTo.location == NSNotFound) return range;
+    if (forwardTo.location <= backwardTo.location) return NSMakeRange(range.location, forwardTo.location - range.location);
+    return NSMakeRange(backwardTo.location + 1, forwardTo.location - backwardTo.location - 1);
+}
+
 static void doCommandBySelector( id self_, SEL _cmd, SEL selector )
 {
     do {
@@ -16,7 +84,9 @@ static void doCommandBySelector( id self_, SEL _cmd, SEL selector )
         if (selector == @selector(deleteToBeginningOfLine:) ||
             selector == @selector(moveToBeginningOfLine:) ||
             selector == @selector(moveToBeginningOfParagraph:) ||
-            selector == @selector(moveToLeftEndOfLine:) || selectionModified)
+            selector == @selector(moveToLeftEndOfLine:) || selectionModified ||
+            selector == @selector(moveParagraphBackwardAndModifySelection:) ||
+            selector == @selector(moveParagraphForwardAndModifySelection:))
         {
             NSTextView *self = (NSTextView *)self_;
             NSString *text = self.string;
@@ -66,6 +136,12 @@ static void doCommandBySelector( id self_, SEL _cmd, SEL selector )
             }
             else {
                 // handle other methods
+                if (selector == @selector(moveParagraphBackwardAndModifySelection:)) {
+                    range = extendRange(text, selectedRange);
+                }
+                if (selector == @selector(moveParagraphForwardAndModifySelection:)) {
+                    range = shrinkRange(text, selectedRange);
+                }
                 [self setSelectedRange:range];
                 [self scrollRangeToVisible:range];
             }
