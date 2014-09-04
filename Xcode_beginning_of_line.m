@@ -8,71 +8,201 @@ static IMP original_doCommandBySelector = nil;
 
 @implementation Xcode_beginning_of_line
 
-static NSRange leftExtendRange(NSString * text, NSRange range, NSCharacterSet * chr) {
+NSRange findMatchingBracket(NSString * text, NSRange range, bool forward, bool square, bool opening) {
+    NSCharacterSet * charset = [NSCharacterSet characterSetWithCharactersInString:square?@"[]":@"()"];
+    NSString * search = square?(opening?@"[":@"]"):(opening?@"(":@")");
+    int level = 1;
+    NSRange startRange = forward ? NSMakeRange(range.location, text.length - range.location - 1) : NSMakeRange(0, range.location + range.length - 1);
+    while(1) {
+        NSRange r = [text rangeOfCharacterFromSet:charset options:forward?0:NSBackwardsSearch range:startRange];
+        if (r.location == NSNotFound) return range;
+        if ([[text substringWithRange:r] isEqualToString:search]) {
+            --level;
+            if (level == 0) {
+                if (r.location > range.location && r.location < (range.location + range.length)) {
+                    return range;
+                } else {
+                    return forward ? NSMakeRange(range.location, r.location - range.location) : NSMakeRange(r.location + 1, range.location + range.length - r.location - 1);
+                }
+            }
+        } else {
+            ++level;
+        }
+        startRange = forward ? NSMakeRange(r.location + 1, text.length - r.location - 1) : NSMakeRange(0, r.location);
+    }
+}
+
+NSRange leftExtendRange(NSString * text, NSRange range, NSCharacterSet * chr, NSRange lineRange) {
     NSRange backwardTo = [text rangeOfCharacterFromSet:chr options:NSBackwardsSearch range:NSMakeRange(0, range.location - 1)];
     if (backwardTo.location == NSNotFound) return range;
+    if (backwardTo.location < lineRange.location) return NSMakeRange(lineRange.location, range.location + range.length - lineRange.location);
     return NSMakeRange(backwardTo.location + 1, range.location + range.length - backwardTo.location - 1);
 }
 
-static NSRange rightExtendRange(NSString * text, NSRange range, NSCharacterSet * chr) {
-    unsigned long end = range.location + range.length;
+NSRange rightExtendRange(NSString * text, NSRange range, NSCharacterSet * chr, NSRange lineRange) {
+    NSUInteger end = range.location + range.length;
     NSRange forwardTo = [text rangeOfCharacterFromSet:chr options:0 range:NSMakeRange(end + 1, text.length - end - 1)];
     if (forwardTo.location == NSNotFound) return range;
-    return NSMakeRange(range.location, forwardTo.location - range.location);
+    NSUInteger calculatedEnd = forwardTo.location - range.location;
+    if ((range.location + calculatedEnd) > (lineRange.location + lineRange.length)) {
+        calculatedEnd = lineRange.location + lineRange.length - range.location;
+    }
+    return NSMakeRange(range.location, calculatedEnd);
 }
 
+NSRange leftShrinkRange(NSString * text, NSRange range, NSCharacterSet * chr) {
+    NSRange backwardTo = [text rangeOfCharacterFromSet:chr options:0 range:range];
+    if (backwardTo.location == NSNotFound) return NSMakeRange(range.location + 1, range.length - 2);
+    return NSMakeRange(backwardTo.location + 1, range.location + range.length - backwardTo.location - 2);
+}
+
+
+NSRange rightShrinkRange(NSString * text, NSRange range, NSCharacterSet * chr) {
+    NSRange forwardTo = [text rangeOfCharacterFromSet:chr options:NSBackwardsSearch range:range];
+    if (forwardTo.location == NSNotFound) return NSMakeRange(range.location+1, range.length - 1);
+    return NSMakeRange(range.location + 1, forwardTo.location - range.location - 1);
+}
+
+
 static NSRange extendRange(NSString * text, NSRange range) {
-    unsigned long end = range.location + range.length;
+    NSUInteger end = range.location + range.length;
+    NSRange lineRange = [text lineRangeForRange:range];
+    NSCharacterSet * spaces = [NSCharacterSet whitespaceCharacterSet];
+    NSCharacterSet * nonAlpha = [[NSCharacterSet alphanumericCharacterSet] invertedSet];
+    NSCharacterSet * nonSpaces = [spaces invertedSet];
     
-    unichar begChar = [text characterAtIndex:range.location - 1];
-    unichar endChar = [text characterAtIndex:range.location + range.length];
-    
-    if (begChar == '"' && endChar != '"') {
-        return rightExtendRange(text, range, [NSCharacterSet characterSetWithCharactersInString:@"\""]);
+    if (range.location > 0 && end < text.length) {
+        unichar begChar = [text characterAtIndex:range.location - 1];
+        unichar endChar = [text characterAtIndex:range.location + range.length];
+        
+        if (begChar == '"' && endChar != '"') {
+            return rightExtendRange(text, range, [NSCharacterSet characterSetWithCharactersInString:@"\""], lineRange);
+        }
+        
+        if (endChar == '"' && begChar != '"') {
+            return leftExtendRange(text, range, [NSCharacterSet characterSetWithCharactersInString:@"\""], lineRange);
+        }
+        
+        if (begChar == '(' && endChar != ')') {
+            return findMatchingBracket(text, range, true, false, false);
+        }
+        
+        if (endChar == ')' && begChar != '(') {
+            return findMatchingBracket(text, range, false, false, true);
+        }
+        
+        if (begChar == '[' && endChar != ']') {
+            return findMatchingBracket(text, range, true, true, false);
+        }
+        
+        if (endChar == ']' && begChar != '[') {
+            return findMatchingBracket(text, range, false, true, true);
+        }
+        
+        if (begChar == '.' && endChar != '.') {
+            return leftExtendRange(text, range, nonAlpha, lineRange);
+        }
+        
+        if (endChar == '.' && begChar != '.') {
+            return rightExtendRange(text, range, nonAlpha, lineRange);
+        }
+        if (([spaces characterIsMember:begChar] && range.location > lineRange.location) || ([spaces characterIsMember:endChar] && end < (lineRange.location + lineRange.length))) {
+            if ([spaces characterIsMember:begChar] && range.location > lineRange.location) {
+                range = leftExtendRange(text, range, nonSpaces, lineRange);
+            }
+            if ([spaces characterIsMember:endChar] && end < (lineRange.location + lineRange.length)) {
+                range = rightExtendRange(text, range, nonSpaces, lineRange);
+            }
+            return extendRange(text, range);
+        }
     }
     
-    if (endChar == '"' && begChar != '"') {
-        return leftExtendRange(text, range, [NSCharacterSet characterSetWithCharactersInString:@"\""]);
-    }
+    NSUInteger backwardTo = basicSearchBack(text, range);
+    NSUInteger forwardTo = basicSearchForward(text, range);
     
-    if (begChar == '(' && endChar != ')') {
-        return rightExtendRange(text, range, [NSCharacterSet characterSetWithCharactersInString:@")"]);
+    NSUInteger calculatedEnd = forwardTo - backwardTo;
+    if (forwardTo > (lineRange.location + lineRange.length)) {
+        forwardTo = lineRange.location + lineRange.length;
+        calculatedEnd = forwardTo - backwardTo;
     }
-    
-    if (endChar == ')' && begChar != '(') {
-        return leftExtendRange(text, range, [NSCharacterSet characterSetWithCharactersInString:@"("]);
+    if (backwardTo < lineRange.location) {
+        backwardTo = lineRange.location;
+        calculatedEnd = forwardTo - backwardTo;
     }
-    
-    if (begChar == '[' && endChar != ']') {
-        return rightExtendRange(text, range, [NSCharacterSet characterSetWithCharactersInString:@"]"]);
-    }
-    
-    if (endChar == ']' && begChar != '[') {
-        return leftExtendRange(text, range, [NSCharacterSet characterSetWithCharactersInString:@"["]);
-    }
-    
-    if (begChar == '.' && endChar != '.') {
-        return leftExtendRange(text, range, [[NSCharacterSet alphanumericCharacterSet] invertedSet]);
-    }
-    
-    if (endChar == '.' && begChar != '.') {
-        return rightExtendRange(text, range, [[NSCharacterSet alphanumericCharacterSet] invertedSet]);
-    }
-    
+    return NSMakeRange(backwardTo, calculatedEnd);
+}
+
+NSUInteger basicSearchBack(NSString * text, NSRange range) {
+    if (range.location < 1) return 0;
     NSRange backwardTo = [text rangeOfCharacterFromSet:[[NSCharacterSet alphanumericCharacterSet] invertedSet] options:NSBackwardsSearch range:NSMakeRange(0, range.location - 1)];
-    if (backwardTo.location == NSNotFound) return range;
+    if (backwardTo.location == NSNotFound) return 0;
+    return backwardTo.location + 1;
+}
+
+NSUInteger basicSearchForward(NSString * text, NSRange range) {
+    NSUInteger end = range.location + range.length;
+    if (end > (text.length - 2)) return text.length;
     NSRange forwardTo = [text rangeOfCharacterFromSet:[[NSCharacterSet alphanumericCharacterSet] invertedSet] options:0 range:NSMakeRange(end + 1, text.length - end - 1)];
-    if (forwardTo.location == NSNotFound) return range;
-    return NSMakeRange(backwardTo.location + 1, forwardTo.location - backwardTo.location - 1);
+    if (forwardTo.location == NSNotFound) forwardTo.location = end + 1;
+    return forwardTo.location;
 }
 
 static NSRange shrinkRange(NSString * text, NSRange range) {
+    if (range.length < 2) return range;
+    NSUInteger end = range.location + range.length;
+    NSCharacterSet * spaces = [NSCharacterSet whitespaceCharacterSet];
+    NSCharacterSet * nonSpaces = [spaces invertedSet];
+    
+    if (range.location > 0 && end < text.length) {
+        unichar begChar = [text characterAtIndex:range.location];
+        unichar endChar = [text characterAtIndex:range.location + range.length - 1];
+        
+        if (begChar == '"' && endChar != '"') {
+            return rightShrinkRange(text, range, [NSCharacterSet characterSetWithCharactersInString:@"\""]);
+        }
+        
+        if (endChar == '"' && begChar != '"') {
+            return rightShrinkRange(text, range, [NSCharacterSet characterSetWithCharactersInString:@"\""]);
+        }
+        
+        if (begChar == '(' && endChar != ')') {
+            return rightShrinkRange(text, range, [NSCharacterSet characterSetWithCharactersInString:@")"]);
+        }
+        
+        if (endChar == ')' && begChar != '(') {
+            return leftShrinkRange(text, range, [NSCharacterSet characterSetWithCharactersInString:@"("]);
+        }
+        
+        if (begChar == '[' && endChar != ']') {
+            return rightShrinkRange(text, range, [NSCharacterSet characterSetWithCharactersInString:@"]"]);
+            return findMatchingBracket(text, range, true, true, false);
+        }
+        
+        if (endChar == ']' && begChar != '[') {
+            return leftShrinkRange(text, range, [NSCharacterSet characterSetWithCharactersInString:@"["]);
+        }
+        
+        if ([spaces characterIsMember:begChar] || [spaces characterIsMember:endChar]) {
+            if ([spaces characterIsMember:begChar]) {
+                range = leftShrinkRange(text, range, nonSpaces);
+            }
+            if ([spaces characterIsMember:endChar]) {
+                range = rightShrinkRange(text, range, nonSpaces);
+            }
+            return range;
+        }
+    }
+    
     NSRange backwardTo = [text rangeOfCharacterFromSet:[[NSCharacterSet alphanumericCharacterSet] invertedSet] options:0 range:range];
     if (backwardTo.location == NSNotFound) return range;
     NSRange forwardTo = [text rangeOfCharacterFromSet:[[NSCharacterSet alphanumericCharacterSet] invertedSet] options:NSBackwardsSearch range:range];
     if (forwardTo.location == NSNotFound) return range;
     if (forwardTo.location <= backwardTo.location) return NSMakeRange(range.location, forwardTo.location - range.location);
     return NSMakeRange(backwardTo.location + 1, forwardTo.location - backwardTo.location - 1);
+}
+
+void wrapper(NSTextView * textView, SEL _cmd, SEL selector) {
+    doCommandBySelector(textView, _cmd, selector);
 }
 
 static void doCommandBySelector( id self_, SEL _cmd, SEL selector )
@@ -103,16 +233,16 @@ static void doCommandBySelector( id self_, SEL _cmd, SEL selector )
                 break;
             
             NSUInteger caretLocation = selectedRange.location - lineRange.location;
-            if (caretLocation < codeStartRange.location && caretLocation != 0)
-                break;
+            /*if (caretLocation < codeStartRange.location && caretLocation != 0)
+                break;*/
             
-            int start = lineRange.location;
+            NSUInteger start = lineRange.location;
             if (selectedRange.location != (lineRange.location + codeStartRange.location))
                 start += codeStartRange.location;
             
-            int end = selectionModified ? (selectedRange.location + selectedRange.length) : start;
+            NSUInteger end = selectionModified ? (selectedRange.location + selectedRange.length) : start;
             
-            if (end - start < 0)
+            if (end < start)
                 break;
             
             NSRange range = NSMakeRange(start, end - start);
