@@ -13,8 +13,20 @@
 
 @end
 
-extern NSRange findMatchingBracket(NSString * text, NSRange range, bool forward, bool square, bool opening);
 extern void wrapper(NSTextView * textView, SEL _cmd, SEL selector);
+
+extern NSUInteger matchingBracketPosition(NSString * text, NSRange range, bool isForward, unichar bracket);
+extern NSUInteger symbolsFromSetPosition(NSString * text, NSRange range, bool isForward, NSCharacterSet * set);
+extern NSUInteger matchingQuotePosition(NSString * text, NSUInteger position, bool isDouble);
+extern NSRange extendRangeToMatchingQuote(NSString * text, NSRange range, NSUInteger position, bool isDouble);
+extern NSRange shrinkRangeToMatchingQuote(NSString * text, NSRange range, NSUInteger position, bool isDouble);
+extern NSRange extendRangeToMatchingBracket(NSString * text, NSRange range, NSRange lineRange, NSUInteger position, unichar bracket, bool isForward);
+extern NSRange shrinkRangeToMatchingBracket(NSString * text, NSRange range, NSUInteger position, unichar bracket, bool isForward);
+extern NSRange extendRangeToSymbolFromSet(NSString * text, NSRange range, NSRange lineRange, NSCharacterSet * charset, bool isForward);
+extern NSRange shrinkRangeToSymbolFromSet(NSString * text, NSRange range, NSCharacterSet * charset, bool isForward);
+extern NSRange extendRange(NSString * text, NSRange range);
+extern NSRange shrinkRange(NSString * text, NSRange range);
+
 
 @implementation XCodeUnitTest
 
@@ -28,10 +40,232 @@ extern void wrapper(NSTextView * textView, SEL _cmd, SEL selector);
     [super tearDown];
 }
 
-- (void)testExample {
-    NSRange r = findMatchingBracket(@"aaa(bbb(ccc)ddd)eee", NSMakeRange(4, 1), true, false, true);
+-(void)testMatchingBracketPosition {
+    NSString * text = @"( aaa ( bbb ( ccc ) ddd ) eee ) fff";
+    NSUInteger c = matchingBracketPosition(text, NSMakeRange(2, text.length - 2), true, '(');
+    XCTAssertEqual(c, 30);
+    c = matchingBracketPosition(text, NSMakeRange(0, text.length), true, '(');
+    XCTAssertEqual(c, NSNotFound);
+    c = matchingBracketPosition(text, NSMakeRange(8, text.length - 8), true, '(');
+    XCTAssertEqual(c, 24);
+    c = matchingBracketPosition(text, NSMakeRange(8, text.length - 8), true, ')');
+    XCTAssertEqual(c, 12);
+    
+    c = matchingBracketPosition(text, NSMakeRange(0, text.length - 8), false, ')');
+    XCTAssertEqual(c, 0);
+    c = matchingBracketPosition(text, NSMakeRange(0, text.length), false, ')');
+    XCTAssertEqual(c, NSNotFound);
+    c = matchingBracketPosition(text, NSMakeRange(0, text.length - 14), false, ')');
+    XCTAssertEqual(c, 6);
+    c = matchingBracketPosition(text, NSMakeRange(0, text.length), false, '(');
+    XCTAssertEqual(c, 30);
+}
+
+-(void)testSymbolsFromSetPosition {
+    NSString * text = @"abcdefgh ijklmn opqr rqpo nmlkji hgfedcba";
+    NSUInteger c = symbolsFromSetPosition(text, NSMakeRange(0, text.length), true, [NSCharacterSet characterSetWithCharactersInString:@"jkilm"]);
+    XCTAssertEqual(c, 9);
+    c = symbolsFromSetPosition(text, NSMakeRange(0, text.length), false, [NSCharacterSet characterSetWithCharactersInString:@"jkilm"]);
+    XCTAssertEqual(c, 31);
+}
+
+-(void)testMatchingQuotesPosition {
+    NSString * text = @"asdfasfasf \" asdfasdfasf \\\" sfefadfa \\\" aasdflaksja;\" lkj;kj;lkj";
+    NSUInteger c = matchingQuotePosition(text, 11, true);
+    XCTAssertEqual(c, 52);
+    c = matchingQuotePosition(text, 52, true);
+    XCTAssertEqual(c, 11);
+}
+
+-(void)testExtendRangeToMatchingQuote {
+    NSString * text = @"asdfasfasf \" asdfasdfasf \\\" sfefadfa \\\" aasdflaksja;\" lkj;kj;lkj";
+    NSRange r = extendRangeToMatchingQuote(text, NSMakeRange(12, 5), 11, true);
+    NSLog(@"%@", [text substringWithRange:r]);
+    XCTAssertEqual(r.location, 11);
+    XCTAssertEqual(r.length, 42);
+    r = extendRangeToMatchingQuote(text, NSMakeRange(46, 5), 52, true);
+    NSLog(@"%@", [text substringWithRange:r]);
+    XCTAssertEqual(r.location, 11);
+    XCTAssertEqual(r.length, 42);
+    r = extendRangeToMatchingQuote(text, NSMakeRange(10, 41), 52, true);
+    NSLog(@"%@", [text substringWithRange:r]);
+    XCTAssertEqual(r.location, 10);
+    XCTAssertEqual(r.length, 43);
+}
+
+-(void)testShrinkRangeToMatchingQuote {
+    NSString * text = @"asdfasfasf \" asdfasdfasf \\\" sfefadfa \\\" aasdflaksja;\" lkj;kj;lkj";
+    NSRange r = shrinkRangeToMatchingQuote(text, NSMakeRange(11, 44), 11, true);
+    NSLog(@"%@", [text substringWithRange:r]);
+    XCTAssertEqual(r.location, 11);
+    XCTAssertEqual(r.length, 42);
+    r = shrinkRangeToMatchingQuote(text, NSMakeRange(2, 50), 52, true);
+    NSLog(@"%@", [text substringWithRange:r]);
+    XCTAssertEqual(r.location, 11);
+    XCTAssertEqual(r.length, 42);
+    r = shrinkRangeToMatchingQuote(text, NSMakeRange(2, 49), 52, true);
+    NSLog(@"%@", [text substringWithRange:r]);
+    XCTAssertEqual(r.location, 11);
+    XCTAssertEqual(r.length, 42);
+}
+
+-(void)testExtendRangeToMatchingBracket {
+    NSString * text = @"if (selector == @selector(deleteToBeginningOfLine:)) {";
+    NSRange r = extendRangeToMatchingBracket(text, NSMakeRange(4, 5), NSMakeRange(0, text.length), 3, '(', true);
+    NSLog(@"%@", [text substringWithRange:r]);
     XCTAssertEqual(r.location, 4);
-    XCTAssertEqual(r.length, 3);
+    XCTAssertEqual(r.length, 47);
+    r = extendRangeToMatchingBracket(text, NSMakeRange(4, 49), NSMakeRange(0, text.length), 3, ')', true);
+    NSLog(@"%@", [text substringWithRange:r]);
+    XCTAssertEqual(r.location, 3);
+    XCTAssertEqual(r.length, 50);
+}
+
+-(void)testShrinkRangeToMatchingBracket {
+    NSString * text = @"if (selector == @selector(deleteToBeginningOfLine:)) {aaa";
+    NSRange r = shrinkRangeToMatchingBracket(text, NSMakeRange(5, 47), 52, ')', false);
+    NSLog(@"%@", [text substringWithRange:r]);
+    XCTAssertEqual(r.location, 5);
+    XCTAssertEqual(r.length, 46);
+    r = shrinkRangeToMatchingBracket(text, NSMakeRange(3, 6), 3, '(', true);
+    NSLog(@"%@", [text substringWithRange:r]);
+    XCTAssertEqual(r.location, 4);
+    XCTAssertEqual(r.length, 5);
+    r = shrinkRangeToMatchingBracket(text, NSMakeRange(3, 52), 3, '(', true);
+    NSLog(@"%@", [text substringWithRange:r]);
+    XCTAssertEqual(r.location, 3);
+    XCTAssertEqual(r.length, 49);
+}
+
+-(void)testExtendRangeToSymbolFromSet {
+    NSCharacterSet * nonAlpha = [[NSCharacterSet alphanumericCharacterSet] invertedSet];
+    NSString * text = @"if (selector == @selector(deleteToBeginningOfLine:)) {aaa";
+    NSRange lineRange = NSMakeRange(0, text.length);
+    
+    NSRange range = extendRangeToSymbolFromSet(text, NSMakeRange(45, 1), lineRange, nonAlpha, false);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 26);
+    XCTAssertEqual(range.length, 20);
+    
+    range = extendRangeToSymbolFromSet(text, NSMakeRange(40, 1), lineRange, nonAlpha, true);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 40);
+    XCTAssertEqual(range.length, 9);
+}
+
+-(void)testShrinkRangeToSymbolFromSet {
+    NSCharacterSet * nonAlpha = [[NSCharacterSet alphanumericCharacterSet] invertedSet];
+    NSString * text = @"if (selector == @selector(deleteToBeginningOfLine:)) {aaa";
+    
+    NSRange range = shrinkRangeToSymbolFromSet(text, NSMakeRange(20, 25), nonAlpha, false);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 20);
+    XCTAssertEqual(range.length, 6);
+    
+    range = shrinkRangeToSymbolFromSet(text, NSMakeRange(20, 25), nonAlpha, true);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 25);
+    XCTAssertEqual(range.length, 20);
+}
+
+-(void)testExtendRange {
+    NSString * text = @"if (selector == @selector(deleteToBeginningOfLine:)) {aaa";
+    NSRange range = NSMakeRange(45, 1);
+    
+    range = extendRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 26);
+    XCTAssertEqual(range.length, 23);
+    
+    range = extendRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 26);
+    XCTAssertEqual(range.length, 24);
+    
+    range = extendRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 25);
+    XCTAssertEqual(range.length, 26);
+    
+    range = extendRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 3);
+    XCTAssertEqual(range.length, 49);
+    
+    range = extendRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 2);
+    XCTAssertEqual(range.length, 51);
+    
+    range = extendRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 2);
+    XCTAssertEqual(range.length, 51);
+}
+
+-(void)testShrinkRange {
+    NSString * text = @"if (selector == @selector(deleteToBeginningOfLine:)) {aaa";
+    NSRange range = NSMakeRange(0, text.length);
+    
+    range = shrinkRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 2);
+    XCTAssertEqual(range.length, 51);
+    
+    range = shrinkRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 3);
+    XCTAssertEqual(range.length, 49);
+    
+    range = shrinkRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 4);
+    XCTAssertEqual(range.length, 47);
+    
+    range = shrinkRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 25);
+    XCTAssertEqual(range.length, 26);
+    
+    range = shrinkRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 26);
+    XCTAssertEqual(range.length, 24);
+    
+    range = shrinkRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 26);
+    XCTAssertEqual(range.length, 24);
+}
+
+-(void)testSmartExtend {
+    NSString * text = @"    return NSMakeRange(backwardTo, calculatedEnd);";
+    NSRange range = NSMakeRange(7, 1);
+    
+    range = extendRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 4);
+    XCTAssertEqual(range.length, 6);
+    
+    range = extendRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 4);
+    XCTAssertEqual(range.length, 18);
+    
+    range = extendRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 4);
+    XCTAssertEqual(range.length, 45);
+    
+    range = extendRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 4);
+    XCTAssertEqual(range.length, 46);
+    
+    range = extendRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 4);
+    XCTAssertEqual(range.length, 46);
 }
 
 -(void)testSelection {
@@ -56,17 +290,21 @@ extern void wrapper(NSTextView * textView, SEL _cmd, SEL selector);
     textView.string = text;
     textView.selectedRange = NSMakeRange(308, 1);
     wrapper(textView, nil, @selector(moveParagraphBackwardAndModifySelection:));
+    NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
     XCTAssertEqual(textView.selectedRange.location, 301);
-    XCTAssertEqual(textView.selectedRange.length, 9);
+    XCTAssertEqual(textView.selectedRange.length, 8);
     wrapper(textView, nil, @selector(moveParagraphBackwardAndModifySelection:));
+    NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
     XCTAssertEqual(textView.selectedRange.location, 291);
-    XCTAssertEqual(textView.selectedRange.length, 19);
+    XCTAssertEqual(textView.selectedRange.length, 18);
     wrapper(textView, nil, @selector(moveParagraphBackwardAndModifySelection:));
+    NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
     XCTAssertEqual(textView.selectedRange.location, 291);
     XCTAssertEqual(textView.selectedRange.length, 43);
     wrapper(textView, nil, @selector(moveParagraphBackwardAndModifySelection:));
-    XCTAssertEqual(textView.selectedRange.location, 279);
-    XCTAssertEqual(textView.selectedRange.length, 56);
+    NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
+    XCTAssertEqual(textView.selectedRange.location, 290);
+    XCTAssertEqual(textView.selectedRange.length, 45);
 }
 
 -(void)testBracketMatching {
@@ -80,12 +318,12 @@ extern void wrapper(NSTextView * textView, SEL _cmd, SEL selector);
     XCTAssertEqual(textView.selectedRange.length, 11);
     wrapper(textView, nil, @selector(moveParagraphBackwardAndModifySelection:));
     NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
-    XCTAssertEqual(textView.selectedRange.location, 51);
-    XCTAssertEqual(textView.selectedRange.length, 53);
-    wrapper(textView, nil, @selector(moveParagraphBackwardAndModifySelection:));
-    NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
     XCTAssertEqual(textView.selectedRange.location, 50);
     XCTAssertEqual(textView.selectedRange.length, 55);
+    wrapper(textView, nil, @selector(moveParagraphBackwardAndModifySelection:));
+    NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
+    XCTAssertEqual(textView.selectedRange.location, 49);
+    XCTAssertEqual(textView.selectedRange.length, 64);
     wrapper(textView, nil, @selector(moveParagraphBackwardAndModifySelection:));
     NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
     XCTAssertEqual(textView.selectedRange.location, 26);
@@ -93,7 +331,7 @@ extern void wrapper(NSTextView * textView, SEL _cmd, SEL selector);
     wrapper(textView, nil, @selector(moveParagraphBackwardAndModifySelection:));
     NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
     XCTAssertEqual(textView.selectedRange.location, 21);
-    XCTAssertEqual(textView.selectedRange.length, 94);
+    XCTAssertEqual(textView.selectedRange.length, 92);
     wrapper(textView, nil, @selector(moveParagraphBackwardAndModifySelection:));
     NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
     XCTAssertEqual(textView.selectedRange.location, 21);
@@ -108,8 +346,16 @@ extern void wrapper(NSTextView * textView, SEL _cmd, SEL selector);
     XCTAssertEqual(textView.selectedRange.length, 149);
     wrapper(textView, nil, @selector(moveParagraphBackwardAndModifySelection:));
     NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
+    XCTAssertEqual(textView.selectedRange.location, 17);
+    XCTAssertEqual(textView.selectedRange.length, 150);
+    wrapper(textView, nil, @selector(moveParagraphBackwardAndModifySelection:));
+    NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
     XCTAssertEqual(textView.selectedRange.location, 8);
     XCTAssertEqual(textView.selectedRange.length, 159);
+    wrapper(textView, nil, @selector(moveParagraphBackwardAndModifySelection:));
+    NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
+    XCTAssertEqual(textView.selectedRange.location, 7);
+    XCTAssertEqual(textView.selectedRange.length, 160);
     wrapper(textView, nil, @selector(moveParagraphBackwardAndModifySelection:));
     NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
     XCTAssertEqual(textView.selectedRange.location, 0);
@@ -129,23 +375,27 @@ extern void wrapper(NSTextView * textView, SEL _cmd, SEL selector);
     wrapper(textView, nil, @selector(moveParagraphBackwardAndModifySelection:));
     NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
     XCTAssertEqual(textView.selectedRange.location, 192);
-    XCTAssertEqual(textView.selectedRange.length, 10);
+    XCTAssertEqual(textView.selectedRange.length, 9);
     wrapper(textView, nil, @selector(moveParagraphBackwardAndModifySelection:));
     NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
     XCTAssertEqual(textView.selectedRange.location, 186);
-    XCTAssertEqual(textView.selectedRange.length, 16);
+    XCTAssertEqual(textView.selectedRange.length, 15);
+    wrapper(textView, nil, @selector(moveParagraphBackwardAndModifySelection:));
+    NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
+    XCTAssertEqual(textView.selectedRange.location, 184);
+    XCTAssertEqual(textView.selectedRange.length, 18);
+    wrapper(textView, nil, @selector(moveParagraphBackwardAndModifySelection:));
+    NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
+    XCTAssertEqual(textView.selectedRange.location, 183);
+    XCTAssertEqual(textView.selectedRange.length, 19);
     wrapper(textView, nil, @selector(moveParagraphBackwardAndModifySelection:));
     NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
     XCTAssertEqual(textView.selectedRange.location, 183);
     XCTAssertEqual(textView.selectedRange.length, 21);
     wrapper(textView, nil, @selector(moveParagraphBackwardAndModifySelection:));
     NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
-    XCTAssertEqual(textView.selectedRange.location, 171);
-    XCTAssertEqual(textView.selectedRange.length, 34);
-    wrapper(textView, nil, @selector(moveParagraphBackwardAndModifySelection:));
-    NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
-    XCTAssertEqual(textView.selectedRange.location, 106);
-    XCTAssertEqual(textView.selectedRange.length, 99);
+    XCTAssertEqual(textView.selectedRange.location, 182);
+    XCTAssertEqual(textView.selectedRange.length, 23);
     wrapper(textView, nil, @selector(moveParagraphBackwardAndModifySelection:));
     NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
     XCTAssertEqual(textView.selectedRange.location, 105);
@@ -157,19 +407,7 @@ extern void wrapper(NSTextView * textView, SEL _cmd, SEL selector);
     wrapper(textView, nil, @selector(moveParagraphBackwardAndModifySelection:));
     NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
     XCTAssertEqual(textView.selectedRange.location, 92);
-    XCTAssertEqual(textView.selectedRange.length, 116);
-    wrapper(textView, nil, @selector(moveParagraphBackwardAndModifySelection:));
-    NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
-    XCTAssertEqual(textView.selectedRange.location, 84);
-    XCTAssertEqual(textView.selectedRange.length, 124);
-    wrapper(textView, nil, @selector(moveParagraphBackwardAndModifySelection:));
-    NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
-    XCTAssertEqual(textView.selectedRange.location, 80);
-    XCTAssertEqual(textView.selectedRange.length, 128);
-    wrapper(textView, nil, @selector(moveParagraphBackwardAndModifySelection:));
-    NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
-    XCTAssertEqual(textView.selectedRange.location, 80);
-    XCTAssertEqual(textView.selectedRange.length, 128);
+    XCTAssertEqual(textView.selectedRange.length, 115);
 }
 
 -(void)testLineShrink {
@@ -179,44 +417,91 @@ extern void wrapper(NSTextView * textView, SEL _cmd, SEL selector);
     textView.selectedRange = NSMakeRange(0, 55);
     wrapper(textView, nil, @selector(moveParagraphForwardAndModifySelection:));
     NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
+    XCTAssertEqual(textView.selectedRange.location, 2);
+    XCTAssertEqual(textView.selectedRange.length, 47);
+    wrapper(textView, nil, @selector(moveParagraphForwardAndModifySelection:));
+    NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
     XCTAssertEqual(textView.selectedRange.location, 3);
     XCTAssertEqual(textView.selectedRange.length, 46);
     wrapper(textView, nil, @selector(moveParagraphForwardAndModifySelection:));
     NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
-    XCTAssertEqual(textView.selectedRange.location, 192);
-    XCTAssertEqual(textView.selectedRange.length, 10);
+    XCTAssertEqual(textView.selectedRange.location, 3);
+    XCTAssertEqual(textView.selectedRange.length, 36);
     wrapper(textView, nil, @selector(moveParagraphForwardAndModifySelection:));
     NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
-    XCTAssertEqual(textView.selectedRange.location, 192);
-    XCTAssertEqual(textView.selectedRange.length, 10);
+    XCTAssertEqual(textView.selectedRange.location, 3);
+    XCTAssertEqual(textView.selectedRange.length, 35);
     wrapper(textView, nil, @selector(moveParagraphForwardAndModifySelection:));
     NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
-    XCTAssertEqual(textView.selectedRange.location, 192);
-    XCTAssertEqual(textView.selectedRange.length, 10);
+    XCTAssertEqual(textView.selectedRange.location, 3);
+    XCTAssertEqual(textView.selectedRange.length, 34);
     wrapper(textView, nil, @selector(moveParagraphForwardAndModifySelection:));
     NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
-    XCTAssertEqual(textView.selectedRange.location, 192);
-    XCTAssertEqual(textView.selectedRange.length, 10);
+    XCTAssertEqual(textView.selectedRange.location, 3);
+    XCTAssertEqual(textView.selectedRange.length, 33);
     wrapper(textView, nil, @selector(moveParagraphForwardAndModifySelection:));
     NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
-    XCTAssertEqual(textView.selectedRange.location, 192);
-    XCTAssertEqual(textView.selectedRange.length, 10);
+    XCTAssertEqual(textView.selectedRange.location, 4);
+    XCTAssertEqual(textView.selectedRange.length, 32);
     wrapper(textView, nil, @selector(moveParagraphForwardAndModifySelection:));
     NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
-    XCTAssertEqual(textView.selectedRange.location, 192);
-    XCTAssertEqual(textView.selectedRange.length, 10);
+    XCTAssertEqual(textView.selectedRange.location, 5);
+    XCTAssertEqual(textView.selectedRange.length, 30);
     wrapper(textView, nil, @selector(moveParagraphForwardAndModifySelection:));
     NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
-    XCTAssertEqual(textView.selectedRange.location, 192);
-    XCTAssertEqual(textView.selectedRange.length, 10);
+    XCTAssertEqual(textView.selectedRange.location, 10);
+    XCTAssertEqual(textView.selectedRange.length, 11);
     wrapper(textView, nil, @selector(moveParagraphForwardAndModifySelection:));
     NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
-    XCTAssertEqual(textView.selectedRange.location, 192);
+    XCTAssertEqual(textView.selectedRange.location, 10);
     XCTAssertEqual(textView.selectedRange.length, 10);
+}
+
+-(void)testShortShrink {
+    NSString * text = @"    NSUInteger end = range.location + range.length;";
+    NSTextView * textView = [[NSTextView alloc] init];
+    textView.string = text;
+    textView.selectedRange = NSMakeRange(0, 55);
     wrapper(textView, nil, @selector(moveParagraphForwardAndModifySelection:));
     NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
-    XCTAssertEqual(textView.selectedRange.location, 192);
-    XCTAssertEqual(textView.selectedRange.length, 10);
+    XCTAssertEqual(textView.selectedRange.location, 4);
+    XCTAssertEqual(textView.selectedRange.length, 47);
+    wrapper(textView, nil, @selector(moveParagraphForwardAndModifySelection:));
+    NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
+    XCTAssertEqual(textView.selectedRange.location, 14);
+    XCTAssertEqual(textView.selectedRange.length, 36);
+    wrapper(textView, nil, @selector(moveParagraphForwardAndModifySelection:));
+    NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
+    XCTAssertEqual(textView.selectedRange.location, 15);
+    XCTAssertEqual(textView.selectedRange.length, 35);
+    wrapper(textView, nil, @selector(moveParagraphForwardAndModifySelection:));
+    NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
+    XCTAssertEqual(textView.selectedRange.location, 18);
+    XCTAssertEqual(textView.selectedRange.length, 25);
+    wrapper(textView, nil, @selector(moveParagraphForwardAndModifySelection:));
+    NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
+    XCTAssertEqual(textView.selectedRange.location, 19);
+    XCTAssertEqual(textView.selectedRange.length, 24);
+    wrapper(textView, nil, @selector(moveParagraphForwardAndModifySelection:));
+    NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
+    XCTAssertEqual(textView.selectedRange.location, 19);
+    XCTAssertEqual(textView.selectedRange.length, 18);
+    wrapper(textView, nil, @selector(moveParagraphForwardAndModifySelection:));
+    NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
+    XCTAssertEqual(textView.selectedRange.location, 19);
+    XCTAssertEqual(textView.selectedRange.length, 17);
+    wrapper(textView, nil, @selector(moveParagraphForwardAndModifySelection:));
+    NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
+    XCTAssertEqual(textView.selectedRange.location, 19);
+    XCTAssertEqual(textView.selectedRange.length, 16);
+    wrapper(textView, nil, @selector(moveParagraphForwardAndModifySelection:));
+    NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
+    XCTAssertEqual(textView.selectedRange.location, 19);
+    XCTAssertEqual(textView.selectedRange.length, 7);
+    wrapper(textView, nil, @selector(moveParagraphForwardAndModifySelection:));
+    NSLog(@"%@", [text substringWithRange:textView.selectedRange]);
+    XCTAssertEqual(textView.selectedRange.location, 19);
+    XCTAssertEqual(textView.selectedRange.length, 1);
 }
 
 /*- (void)testPerformanceExample {
