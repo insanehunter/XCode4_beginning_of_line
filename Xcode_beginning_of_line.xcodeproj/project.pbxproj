@@ -397,6 +397,7 @@
 				56A45EEB19B807EE00B5375E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
