@@ -18,5 +18,7 @@ Contributors:
 * [Ben Kreeger](https://github.com/kreeger)
 * [gottfired](https://github.com/gottfired)
 * [Thongchai Kolyutsakul](https://github.com/hlung)
+* [Dmitry Matyushkin](https://github.com/dmatushkin)
+* [tyeen](https://github.com/tyeen)
 
 Thanks to [Dave Keck](https://github.com/davekeck) for [Xcode 4 Fixins project](https://github.com/davekeck/Xcode-4-Fixins)
