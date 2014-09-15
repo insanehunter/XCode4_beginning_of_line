@@ -194,13 +194,13 @@ extern NSRange shrinkRange(NSString * text, NSRange range);
     
     range = extendRange(text, range);
     NSLog(@"%@", [text substringWithRange:range]);
-    XCTAssertEqual(range.location, 2);
-    XCTAssertEqual(range.length, 51);
+    XCTAssertEqual(range.location, 0);
+    XCTAssertEqual(range.length, 53);
     
     range = extendRange(text, range);
     NSLog(@"%@", [text substringWithRange:range]);
-    XCTAssertEqual(range.location, 2);
-    XCTAssertEqual(range.length, 51);
+    XCTAssertEqual(range.location, 0);
+    XCTAssertEqual(range.length, 54);
 }
 
 -(void)testShrinkRange {
@@ -605,11 +605,78 @@ extern NSRange shrinkRange(NSString * text, NSRange range);
     XCTAssertEqual(range.length, 11);
 }
 
-/*- (void)testPerformanceExample {
-    // This is an example of a performance test case.
-    [self measureBlock:^{
-        // Put the code you want to measure the time of here.
-    }];
-}*/
+-(void)testBugReportFour {
+    NSString * text = @"GMUserModel *user = [GMDatabase sharedInstance].currentUser;\n\
+    [GMAnalytics measureUserLoggedInWithIdentifier:user.identifier];\n\
+    if (!restored) {\n\
+        [GMAnalytics logEvent:@\"Registration 2.0: Finished\"];\n\
+    }";
+    NSRange range = NSMakeRange(15, 1);
+    
+    range = extendRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 13);
+    XCTAssertEqual(range.length, 4);
+    
+    range = extendRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 12);
+    XCTAssertEqual(range.length, 7);
+    
+    range = extendRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 11);
+    XCTAssertEqual(range.length, 36);
+    
+    range = extendRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 11);
+    XCTAssertEqual(range.length, 48);
+    
+    range = extendRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 0);
+    XCTAssertEqual(range.length, 59);
+    
+    range = extendRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 0);
+    XCTAssertEqual(range.length, 60);
+    
+    range = extendRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 0);
+    XCTAssertEqual(range.length, 61);
+    
+    range = extendRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 0);
+    XCTAssertEqual(range.length, 61);
+}
+
+-(void)testBugReportFive {
+    NSString * text = @"[GMAnalytics logEvent:@\"Registration 2.0: Finished\"];";
+    NSRange range = NSMakeRange(24, 1);
+    
+    range = extendRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 23);
+    XCTAssertEqual(range.length, 28);
+    
+    range = extendRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 0);
+    XCTAssertEqual(range.length, 52);
+    
+    range = extendRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 0);
+    XCTAssertEqual(range.length, 53);
+    
+    range = extendRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 0);
+    XCTAssertEqual(range.length, 53);
+}
 
 @end

@@ -112,7 +112,7 @@ NSRange shrinkRangeToMatchingBracket(NSString * text, NSRange range, NSUInteger 
 NSRange extendRangeToSymbolFromSet(NSString * text, NSRange range, NSRange lineRange, NSCharacterSet * charset, bool isForward) {
     NSRange searchRange = isForward ? NSMakeRange(range.location + range.length, lineRange.location + lineRange.length - range.location - range.length) : NSMakeRange(lineRange.location, range.location - lineRange.location);
     NSUInteger sPos = symbolsFromSetPosition(text, searchRange, isForward, charset);
-    if (sPos == NSNotFound) return range;
+    if (sPos == NSNotFound) return isForward ? NSMakeRange(range.location, lineRange.location + lineRange.length - range.location) : NSMakeRange(lineRange.location, range.location + range.length - lineRange.location);
     if (isForward) return NSMakeRange(range.location, sPos - range.location);
     return NSMakeRange(sPos + 1, range.location + range.length - sPos - 1);
 }
@@ -142,12 +142,12 @@ NSRange extendRange(NSString * text, NSRange range) {
         
         if (begChar == '"' && endChar != '"') {
             NSRange nRange = extendRangeToMatchingQuote(text, range, range.location - 1, true);
-            if (nRange.location == range.location) return nRange;
+            if (nRange.location == (range.location - 1)) return nRange;
         }
         
         if (endChar == '"' && begChar != '"') {
             NSRange nRange = extendRangeToMatchingQuote(text, range, range.location + range.length, true);
-            if ((nRange.location + nRange.length) == (range.location + range.length)) return nRange;
+            if ((nRange.location + nRange.length) == (range.location + range.length + 1)) return nRange;
         }
         
         if (begChar == '\'' && endChar != '\'') {
@@ -173,13 +173,19 @@ NSRange extendRange(NSString * text, NSRange range) {
         }
         
         if (endChar == '(') {
-            NSRange r = extendRangeToMatchingBracket(text, range, lineRange, range.location + range.length, endChar, true);
-            return NSMakeRange(r.location, r.length + 1);
+            NSUInteger pos = matchingBracketPosition(text, NSMakeRange(end + 1, lineRange.location + lineRange.length - end - 1), true, endChar);
+            if (pos != NSNotFound) {
+                NSRange r = extendRangeToMatchingBracket(text, range, lineRange, range.location + range.length, endChar, true);
+                return NSMakeRange(r.location, r.length + 1);
+            }
         }
         
         if (begChar == ')') {
-            NSRange r = extendRangeToMatchingBracket(text, range, lineRange, range.location - 1, begChar, false);
-            return NSMakeRange(r.location - 1, r.length + 1);
+            NSUInteger pos = matchingBracketPosition(text, NSMakeRange(lineRange.location, range.location - lineRange.location - 1), false, begChar);
+            if (pos != NSNotFound) {
+                NSRange r = extendRangeToMatchingBracket(text, range, lineRange, range.location - 1, begChar, false);
+                return NSMakeRange(r.location - 1, r.length + 1);
+            }            
         }
         
         if (begChar == '[') {
@@ -192,6 +198,22 @@ NSRange extendRange(NSString * text, NSRange range) {
             NSUInteger pos = matchingBracketPosition(text, NSMakeRange(lineRange.location, range.location + range.length - lineRange.location), false, endChar);
             if (pos != NSNotFound && pos != (range.location - 1))
                 return extendRangeToMatchingBracket(text, range, lineRange, range.location + range.length, endChar, false);
+        }
+        
+        if (endChar == '[') {
+            NSUInteger pos = matchingBracketPosition(text, NSMakeRange(end + 1, lineRange.location + lineRange.length - end - 1), true, endChar);
+            if (pos != NSNotFound) {
+                NSRange r = extendRangeToMatchingBracket(text, range, lineRange, range.location + range.length, endChar, true);
+                return NSMakeRange(r.location, r.length + 1);
+            }
+        }
+        
+        if (begChar == ']') {
+            NSUInteger pos = matchingBracketPosition(text, NSMakeRange(lineRange.location, range.location - lineRange.location - 1), false, begChar);
+            if (pos != NSNotFound) {
+                NSRange r = extendRangeToMatchingBracket(text, range, lineRange, range.location - 1, begChar, false);
+                return NSMakeRange(r.location - 1, r.length + 1);
+            }
         }
         
         if (begChar == '.' && endChar != '.') {
