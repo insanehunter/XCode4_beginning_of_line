@@ -504,6 +504,107 @@ extern NSRange shrinkRange(NSString * text, NSRange range);
     XCTAssertEqual(textView.selectedRange.length, 1);
 }
 
+-(void)testBugReportTwo {
+    NSString * text = @"NSCharacterSet * searchset = [NSCharacterSet characterSetWithCharactersInString:[NSString stringWithFormat:@\"%c%c\", bracket, pair]];";
+    NSRange range = NSMakeRange(0, text.length);
+    range = shrinkRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 14);
+    XCTAssertEqual(range.length, 117);
+    
+    range = shrinkRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 29);
+    XCTAssertEqual(range.length, 102);
+    
+    range = shrinkRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 30);
+    XCTAssertEqual(range.length, 100);
+    
+    range = shrinkRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 80);
+    XCTAssertEqual(range.length, 50);
+    
+    range = shrinkRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 81);
+    XCTAssertEqual(range.length, 48);
+    
+    range = shrinkRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 89);
+    XCTAssertEqual(range.length, 35);
+    
+    range = shrinkRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 90);
+    XCTAssertEqual(range.length, 34);
+    
+    range = shrinkRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 106);
+    XCTAssertEqual(range.length, 17);
+    
+    range = shrinkRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 106);
+    XCTAssertEqual(range.length, 9);
+    
+    range = shrinkRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 106);
+    XCTAssertEqual(range.length, 8);
+    
+    range = shrinkRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 108);
+    XCTAssertEqual(range.length, 6);
+    
+    range = shrinkRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 108);
+    XCTAssertEqual(range.length, 5);
+}
+
+-(void)testBugReportThree {
+    NSString * text = @"case '(':\n\
+    pair = ')';\n\
+    break;";
+    NSRange range = NSMakeRange(16, 1);
+    
+    range = extendRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 14);
+    XCTAssertEqual(range.length, 4);
+    
+    range = extendRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 14);
+    XCTAssertEqual(range.length, 6);
+    
+    range = extendRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 14);
+    XCTAssertEqual(range.length, 8);
+    
+    range = extendRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 14);
+    XCTAssertEqual(range.length, 9);
+    
+    range = extendRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 14);
+    XCTAssertEqual(range.length, 10);
+    
+    range = extendRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 14);
+    XCTAssertEqual(range.length, 11);
+}
+
 /*- (void)testPerformanceExample {
     // This is an example of a performance test case.
     [self measureBlock:^{

@@ -141,19 +141,23 @@ NSRange extendRange(NSString * text, NSRange range) {
         unichar endChar = [text characterAtIndex:range.location + range.length];
         
         if (begChar == '"' && endChar != '"') {
-            return extendRangeToMatchingQuote(text, range, range.location - 1, true);
+            NSRange nRange = extendRangeToMatchingQuote(text, range, range.location - 1, true);
+            if (nRange.location == range.location) return nRange;
         }
         
         if (endChar == '"' && begChar != '"') {
-            return extendRangeToMatchingQuote(text, range, range.location + range.length, true);
+            NSRange nRange = extendRangeToMatchingQuote(text, range, range.location + range.length, true);
+            if ((nRange.location + nRange.length) == (range.location + range.length)) return nRange;
         }
         
         if (begChar == '\'' && endChar != '\'') {
-            return extendRangeToMatchingQuote(text, range, range.location - 1, false);
+            NSRange nRange = extendRangeToMatchingQuote(text, range, range.location - 1, false);
+            if (nRange.location == range.location) return nRange;
         }
         
         if (endChar == '\'' && begChar != '\'') {
-            return extendRangeToMatchingQuote(text, range, range.location + range.length, false);
+            NSRange nRange = extendRangeToMatchingQuote(text, range, range.location + range.length, false);
+            if ((nRange.location + nRange.length) == (range.location + range.length)) return nRange;
         }
         
         if (begChar == '(') {
@@ -280,7 +284,7 @@ NSRange shrinkRange(NSString * text, NSRange range) {
     
     if (begChar == '[') {
         NSUInteger pos = matchingBracketPosition(text, NSMakeRange(range.location + 1, range.length - 1), true, begChar);
-        if (pos != NSNotFound && pos != end)
+        if (pos != NSNotFound && pos != (end - 1))
             return shrinkRangeToMatchingBracket(text, range, range.location, begChar, true);
         if (pos != NSNotFound) return NSMakeRange(range.location + 1, range.length - 2);
     }
