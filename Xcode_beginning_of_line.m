@@ -345,7 +345,8 @@ static void doCommandBySelector( id self_, SEL _cmd, SEL selector )
 {
     do {
         bool selectionModified = selector == @selector(moveToBeginningOfLineAndModifySelection:) ||
-        selector == @selector(moveToLeftEndOfLineAndModifySelection:);
+        selector == @selector(moveToLeftEndOfLineAndModifySelection:) ||
+        selector == @selector(moveToBeginningOfParagraphAndModifySelection:);
         
         if (selector == @selector(deleteToBeginningOfLine:) ||
             selector == @selector(moveToBeginningOfLine:) ||
