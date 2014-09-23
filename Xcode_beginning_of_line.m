@@ -132,6 +132,8 @@ NSRange extendRange(NSString * text, NSRange range) {
     NSCharacterSet * spaces = [NSCharacterSet whitespaceCharacterSet];
     NSCharacterSet * nonAlpha = [alpha invertedSet];
     NSCharacterSet * nonSpaces = [spaces invertedSet];
+    NSCharacterSet * numeric = [NSCharacterSet decimalDigitCharacterSet];
+    //NSCharacterSet * nonNumeric = [numeric invertedSet];
     
     bool hasBefore = (range.location > lineRange.location && symbolsFromSetPosition(text, NSMakeRange(lineRange.location, range.location - lineRange.location), false, nonSpaces) != NSNotFound);
     bool hasAfter = ((lineRange.location + lineRange.length) > end && symbolsFromSetPosition(text, NSMakeRange(end, lineRange.location + lineRange.length - end), true, nonSpaces) != NSNotFound);
@@ -158,6 +160,22 @@ NSRange extendRange(NSString * text, NSRange range) {
         if (endChar == '\'' && begChar != '\'') {
             NSRange nRange = extendRangeToMatchingQuote(text, range, range.location + range.length, false);
             if ((nRange.location + nRange.length) == (range.location + range.length)) return nRange;
+        }
+        
+        if (begChar == '.' && endChar != '.') {
+            //return extendRangeToSymbolFromSet(text, NSMakeRange(range.location - 1, range.length + 1), lineRange, nonAlpha, false);
+            if ([numeric characterIsMember:[text characterAtIndex:range.location - 2]] && [numeric characterIsMember:endChar]) {
+                range = extendRangeToSymbolFromSet(text, NSMakeRange(range.location, range.length), lineRange, nonAlpha, true);
+            }
+            return extendRangeToSymbolFromSet(text, NSMakeRange(range.location - 1, range.length + 1), lineRange, nonAlpha, false);
+        }
+        
+        if (endChar == '.' && begChar != '.') {
+            //return extendRangeToSymbolFromSet(text, NSMakeRange(range.location, range.length + 1), lineRange, nonAlpha, true);
+            if ([numeric characterIsMember:[text characterAtIndex:end - 1]] && [numeric characterIsMember:[text characterAtIndex:end + 1]]) {
+                range = extendRangeToSymbolFromSet(text, NSMakeRange(range.location, range.length), lineRange, nonAlpha, false);
+            }
+            return extendRangeToSymbolFromSet(text, NSMakeRange(range.location, range.length + 1), lineRange, nonAlpha, true);
         }
         
         if (begChar == '(') {
@@ -214,14 +232,6 @@ NSRange extendRange(NSString * text, NSRange range) {
                 NSRange r = extendRangeToMatchingBracket(text, range, lineRange, range.location - 1, begChar, false);
                 return NSMakeRange(r.location - 1, r.length + 1);
             }
-        }
-        
-        if (begChar == '.' && endChar != '.') {
-            return extendRangeToSymbolFromSet(text, NSMakeRange(range.location - 1, range.length + 1), lineRange, nonAlpha, false);
-        }
-        
-        if (endChar == '.' && begChar != '.') {
-            return extendRangeToSymbolFromSet(text, NSMakeRange(range.location, range.length + 1), lineRange, nonAlpha, true);
         }
         
         if ([alpha characterIsMember:begChar] && ![alpha characterIsMember:endChar]) {

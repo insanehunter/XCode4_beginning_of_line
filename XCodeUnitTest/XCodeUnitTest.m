@@ -679,4 +679,19 @@ extern NSRange shrinkRange(NSString * text, NSRange range);
     XCTAssertEqual(range.length, 53);
 }
 
+-(void)testNumeric {
+    NSString * text = @"1234.1234124";
+    NSRange range = NSMakeRange(4, 0);
+    range = extendRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 0);
+    XCTAssertEqual(range.length, 12);
+    
+    range = NSMakeRange(5, 1);
+    range = extendRange(text, range);
+    NSLog(@"%@", [text substringWithRange:range]);
+    XCTAssertEqual(range.location, 0);
+    XCTAssertEqual(range.length, 12);
+}
+
 @end
