@@ -397,9 +397,9 @@ static void doCommandBySelector( id self_, SEL _cmd, SEL selector )
             if (selector == @selector(deleteToBeginningOfLine:)) {
                 // handle deleteToBeginningOfLine: method
                 NSRange deleteRange;
-                if (caretLocation == codeStartRange.location) {
+                if (caretLocation <= codeStartRange.location) {
                     // we are already at the beginnig of code, delete all the way to start of line
-                    deleteRange = NSMakeRange(lineRange.location, codeStartRange.location);
+                    deleteRange = NSMakeRange(lineRange.location, caretLocation);
                 }
                 else {
                     // delete from caret to code start
