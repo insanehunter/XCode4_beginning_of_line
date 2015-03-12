@@ -445,6 +445,6 @@ static void doCommandBySelector( id self_, SEL _cmd, SEL selector )
     return;
     
 failed:
-    NSLog(@"%@ failed to launch :(", NSStringFromClass([self class]));
+    return;
 }
 @end
